@@ -11,12 +11,16 @@
     <None Remove="Cache\Service\" />
     <None Remove="Cache\Extension\" />
     <None Remove="Cache\Settings\" />
+    <None Remove="Repository\" />
+    <None Remove="DBManager\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Cache\" />
     <Folder Include="Cache\Service\" />
     <Folder Include="Cache\Extension\" />
     <Folder Include="Cache\Settings\" />
+    <Folder Include="Repository\" />
+    <Folder Include="DBManager\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />

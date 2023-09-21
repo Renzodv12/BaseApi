@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Core.Interfaces
 {
-	public interface IDbContextt<T> : ICrud<T>
+	public interface IDbContext<T> : ICrud<T>
     {
 		
 	}
