@@ -30,7 +30,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Infra.Repository;
 using Business.Application;
-
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) => {
@@ -51,10 +55,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.UseRedisCache(builder.Configuration.GetSection("Cache"));
 
 var x = builder.Services.AddDbContext<ApiDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Webapi"))
+   );
 
-
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("EjemploApiRest.Webapi"))
-            );
 builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
@@ -104,6 +107,20 @@ builder.Services.Scan(scan =>
     .AddClasses(classes => classes.Where(type => type.Name.EndsWith("DbContext")))
    .AsImplementedInterfaces()
    .WithTransientLifetime());
+//Add zipkin
+builder.Services.AddOpenTelemetry()
+                    .ConfigureResource(otelBuilder => otelBuilder
+                        .AddService("OpenTelemetry"))
+                    .WithTracing(otelBuilder => otelBuilder
+                        .AddAspNetCoreInstrumentation()
+                        .AddEntityFrameworkCoreInstrumentation()
+                        .AddZipkinExporter()
+                        .ConfigureServices(services =>
+                        {
+                            services.Configure<ZipkinExporterOptions>(builder.Configuration.GetSection("OpenTelemetrySettings:ZipkinSettings"));
+                            services.Configure<EntityFrameworkInstrumentationOptions>(builder.Configuration.GetSection("OpenTelemetrySettings:SQLTracingSettings"));
+                        }));
+
 
 var app = builder.Build();
 
