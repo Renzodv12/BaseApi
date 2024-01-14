@@ -20,7 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
-using System.Linq; 
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -37,7 +37,8 @@ using OpenTelemetry.Exporter;
 using OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, config) => {
+builder.Host.UseSerilog((context, config) =>
+{
     config.ReadFrom.Configuration(context.Configuration.GetSection("Serilog"));
     config.Enrich.FromLogContext();
 });
@@ -67,7 +68,8 @@ builder.Services.AddAuthentication(options =>
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(jwt => {
+.AddJwtBearer(jwt =>
+{
     var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtConfig:Secret"]);
 
     jwt.SaveToken = true;
