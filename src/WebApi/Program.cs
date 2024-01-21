@@ -34,7 +34,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Exporter;
-using OpenTelemetry.Contrib.Instrumentation.EntityFrameworkCore;
+using OpenTelemetry.Instrumentation.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) =>
