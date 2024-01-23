@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.UseRedisCache(builder.Configuration.GetSection("Cache"));
 
 var x = builder.Services.AddDbContext<ApiDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("Webapi"))
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("WebApi"))
    );
 
 builder.Configuration.GetConnectionString("DefaultConnection");
