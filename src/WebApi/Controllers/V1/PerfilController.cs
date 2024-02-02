@@ -1,4 +1,4 @@
-﻿using Core.Entities.Models.Perfil;
+﻿using Core.Entities.Models;
 using Infra.DBManager;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +11,7 @@ namespace WebApi.Controllers.V1
     public class PerfilController : BaseController
     {
         private readonly ApiDbContext _apiDbContext;
-    
+
         public PerfilController(ApiDbContext apiDbContext)
         {
             _apiDbContext = apiDbContext;
@@ -20,23 +20,23 @@ namespace WebApi.Controllers.V1
         [HttpGet]
         public IActionResult Get()
         {
-            
+
             return Json(_apiDbContext.Perfil.ToList());
 
         }
 
         [HttpGet("{id}")]
-     public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-              return Json(await _apiDbContext.Perfil.Where(x => x.Id == id).FirstOrDefaultAsync());
+            return Json(await _apiDbContext.Perfil.Where(x => x.Id == id).FirstOrDefaultAsync());
         }
         [HttpPost]
         public async Task<IActionResult> Post(Perfil _perfil)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 await _apiDbContext.Perfil.AddAsync(_perfil);
-               await _apiDbContext.SaveChangesAsync();
+                await _apiDbContext.SaveChangesAsync();
             }
             return Json(_apiDbContext.Perfil.ToList());
         }
@@ -46,6 +46,7 @@ namespace WebApi.Controllers.V1
         {
             if (ModelState.IsValid)
             {
+                _perfil.Fmodificacion = DateTime.Now;
                 _apiDbContext.Update<Perfil>(_perfil);
                 await _apiDbContext.SaveChangesAsync();
             }
@@ -58,7 +59,7 @@ namespace WebApi.Controllers.V1
             if (ModelState.IsValid)
             {
                 var _perfil = await _apiDbContext.Perfil.Where(x => x.Id == id).FirstOrDefaultAsync();
-               if(_perfil != null)
+                if (_perfil != null)
                 {
 
                     _apiDbContext.Perfil.Remove(_perfil);
