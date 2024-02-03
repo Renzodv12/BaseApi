@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace WebApi.Migrations
 {
     [DbContext(typeof(ApiDbContext))]
-    [Migration("20240123233106_Perfil")]
-    partial class Perfil
+    [Migration("20240203004534_Migrations2")]
+    partial class Migrations2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,21 +25,25 @@ namespace WebApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Core.Entities.Models.Perfil.Perfil", b =>
+            modelBuilder.Entity("Core.Entities.Models.Perfil", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("FCreacion")
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("Fcreacion")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("FModificacion")
+                    b.Property<DateTime>("Fmodificacion")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ImageSrc")
@@ -54,6 +58,47 @@ namespace WebApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Perfil");
+                });
+
+            modelBuilder.Entity("Core.Entities.Models.Projects", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodeUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Estado")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("Fcreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Fmodificacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Language")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProgramsLanguages")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ViewUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
