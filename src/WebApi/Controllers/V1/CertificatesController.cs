@@ -8,10 +8,10 @@ namespace WebApi.Controllers.V1
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PerfilController : BaseController<Perfil>
+    public class CertificatesController : BaseController<Certificates>
     {
 
-        public PerfilController(ApiDbContext apiDbContext) : base(apiDbContext)
+        public CertificatesController(ApiDbContext apiDbContext) : base(apiDbContext)
         {
         }
 
