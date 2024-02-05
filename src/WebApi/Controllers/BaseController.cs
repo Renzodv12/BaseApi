@@ -1,5 +1,6 @@
 ﻿using Core.Entities;
 using Infra.DBManager;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +29,7 @@ namespace WebApi.Controllers
         {
             return Ok(await _apiDbContext.Set<T>().FindAsync(id));
         }
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Post(T model)
         {
@@ -39,6 +41,7 @@ namespace WebApi.Controllers
             return Ok(_apiDbContext.Set<T>().ToList());
         }
 
+        [Authorize]
         [HttpPut]
         public async Task<IActionResult> Put(T model)
         {
@@ -51,6 +54,7 @@ namespace WebApi.Controllers
             return Ok(_apiDbContext.Set<T>().ToList());
         }
 
+        [Authorize]
         [HttpDelete]
         public async Task<IActionResult> Delete(int id)
         {

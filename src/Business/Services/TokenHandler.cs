@@ -12,8 +12,8 @@ using Core.Entities;
 using Core.Interfaces;
 namespace Business.Services
 {
-	public class TokenHandler : ITokenHandler
-	{
+    public class TokenHandler : ITokenHandler
+    {
         private readonly JwtConfig _jwtConfig;
 
         public TokenHandler(IOptionsMonitor<JwtConfig> optionsMonitor)
