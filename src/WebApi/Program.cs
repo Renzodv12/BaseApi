@@ -41,6 +41,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, config) =>
 {
     config.ReadFrom.Configuration(context.Configuration.GetSection("Serilog"));
+    config.WriteTo.MongoDBBson(context.Configuration.GetValue<string>("Serilog:WriteTo:0:Args:databaseUrl"));
     config.Enrich.FromLogContext();
 });
 
