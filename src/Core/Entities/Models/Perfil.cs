@@ -8,6 +8,7 @@ namespace Core.Entities.Models
     public class Perfil : Entity
     {
         public string? Name { get; set; }
+        public string? Title { get; set; }
         public string? Descripcion { get; set; }
         public string? ImageSrc { get; set; }
     }
