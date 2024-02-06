@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using Core.Entities;
+﻿using Core.Entities;
 using Infra.DBManager;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,148 +16,122 @@ namespace WebApi.Controllers
             _apiDbContext = apiDbContext;
         }
 
-
+        [Authorize]
         [HttpGet]
-        public IActionResult Get(bool onlyMe = false)
+        public IActionResult Get()
         {
-            if (onlyMe)
+            var userId = getacount();
+            if (!string.IsNullOrEmpty(userId))
             {
-                string? userId = getacount();
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
-                }
-                else
-                {
-                    return BadRequest("Usuario no encontrado o no valido");
-                }
-            }
+                return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
 
-            return Ok(_apiDbContext.Set<T>().ToList());
+            }
+            else
+            {
+                return BadRequest();
+            }
 
         }
-
+        [Authorize]
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id, bool onlyMe = false)
+        public async Task<IActionResult> Get(int id)
         {
-            if (onlyMe)
+            var userId = getacount();
+            if (!string.IsNullOrEmpty(userId))
             {
-                string? userId = getacount();
-                if (!string.IsNullOrEmpty(userId))
-                {
-                    return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId && x.Id == id).ToList());
-                }
-                else
-                {
-                    return BadRequest("Usuario no encontrado o no valido");
-                }
+                return Ok(await _apiDbContext.Set<T>().Where(x => x.UserId == userId && x.Id == id).FirstOrDefaultAsync());
+
             }
-            return Ok(await _apiDbContext.Set<T>().FindAsync(id));
+            else
+            {
+                return BadRequest();
+            }
         }
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Post(T model, bool onlyMe = false)
+        public async Task<IActionResult> Post(T model)
         {
             if (ModelState.IsValid)
             {
-                if (onlyMe)
+                var userId = getacount();
+                if (!string.IsNullOrEmpty(userId))
                 {
-                    string? userId = getacount();
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        model.UserId = userId;
 
-                        await _apiDbContext.AddAsync<T>(model);
-                        await _apiDbContext.SaveChangesAsync();
-                        return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
-                    }
-                    else
-                    {
-                        return BadRequest("Usuario no encontrado o no valido");
-                    }
+                    model.UserId = userId;
+                    await _apiDbContext.AddAsync<T>(model);
+                    await _apiDbContext.SaveChangesAsync();
+                    return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
 
                 }
-                await _apiDbContext.AddAsync<T>(model);
-                await _apiDbContext.SaveChangesAsync();
+                else
+                {
+                    return BadRequest();
+                }
             }
-            return Ok(_apiDbContext.Set<T>().ToList());
+            else
+            {
+                return BadRequest();
+
+            }
+
+
         }
 
         [Authorize]
         [HttpPut]
-        public async Task<IActionResult> Put(T model, bool onlyMe = false)
+        public async Task<IActionResult> Put(T model)
         {
             if (ModelState.IsValid)
             {
-                if (onlyMe)
+                var userId = getacount();
+                if (!string.IsNullOrEmpty(userId))
                 {
-                    string? userId = getacount();
-                    if (!string.IsNullOrEmpty(userId))
+                    var modelvalidator = await _apiDbContext.Set<T>().FindAsync(model.Id);
+
+                    if (modelvalidator != null && modelvalidator?.UserId == userId)
                     {
-                        model.UserId = userId;
-                        return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
+
+                        model.Fmodificacion = DateTime.Now;
+                        _apiDbContext.Update<T>(model);
+                        await _apiDbContext.SaveChangesAsync();
                     }
                     else
                     {
-                        return BadRequest("Usuario no encontrado o no valido");
+                        return BadRequest("Objeto no te pertenece");
                     }
-
                 }
-                model.Fmodificacion = DateTime.Now;
-                _apiDbContext.Update<T>(model);
-                await _apiDbContext.SaveChangesAsync();
+                return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
             }
-            return Ok(_apiDbContext.Set<T>().ToList());
+            else
+            {
+                return BadRequest();
+            }
         }
 
         [Authorize]
         [HttpDelete]
-        public async Task<IActionResult> Delete(int id, bool onlyMe = false)
+        public async Task<IActionResult> Delete(int id)
         {
             if (ModelState.IsValid)
             {
-
-                if (onlyMe)
+                var userId = getacount();
+                if (!string.IsNullOrEmpty(userId))
                 {
-                    string? userId = getacount();
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        var model = await _apiDbContext.Set<T>().Where(x => x.Id == id && x.UserId == userId).FirstOrDefaultAsync();
-
-                        if (model != null)
-                        {
-                            _apiDbContext.Remove<T>(model);
-                            await _apiDbContext.SaveChangesAsync();
-                        }
-                        return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
-                    }
-                    else
-                    {
-                        return BadRequest("Usuario no encontrado o no valido");
-                    }
-
-                }
-                else
-                {
-                    var model = await _apiDbContext.Set<T>().FindAsync(id);
-
+                    var model = await _apiDbContext.Set<T>().Where(x => x.Id == id && x.UserId == userId).FirstOrDefaultAsync();
                     if (model != null)
                     {
+
                         _apiDbContext.Remove<T>(model);
                         await _apiDbContext.SaveChangesAsync();
                     }
-                    return Ok(_apiDbContext.Set<T>().ToList());
-
                 }
             }
-            return BadRequest();
+            return Ok(_apiDbContext.Set<T>().ToList());
         }
-
-
         private string? getacount()
         {
             // Accede al principal del usuario actual (usuario autenticado)
-            var principal = HttpContext.User as ClaimsPrincipal;
+            var principal = HttpContext.User;
 
             // Busca la claim (reclamación) correspondiente al email
             var emailClaim = principal?.FindFirst("Id");
