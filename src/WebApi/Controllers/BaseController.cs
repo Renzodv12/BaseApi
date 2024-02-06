@@ -1,4 +1,5 @@
 ﻿using Core.Entities;
+using Core.Interfaces;
 using Infra.DBManager;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -10,20 +11,26 @@ namespace WebApi.Controllers
     public class BaseController<T> : ControllerBase where T : Entity
     {
         private readonly ApiDbContext _apiDbContext;
+        private readonly ICacheManager<T> _cacheManager;
 
-        public BaseController(ApiDbContext apiDbContext)
+        public BaseController(ApiDbContext apiDbContext, ICacheManager<T> cacheManager)
         {
             _apiDbContext = apiDbContext;
+            _cacheManager = cacheManager;
         }
 
         [Authorize]
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
             var userId = getacount();
             if (!string.IsNullOrEmpty(userId))
             {
-                return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
+                string key = typeof(T).Name + "." + userId;
+                return Ok(_cacheManager.GetAsync(key, async () =>
+                {
+                    return await _apiDbContext.Set<T>().Where(x => x.UserId == userId).ToListAsync();
+                }));
 
             }
             else
@@ -60,7 +67,9 @@ namespace WebApi.Controllers
                     model.UserId = userId;
                     await _apiDbContext.AddAsync<T>(model);
                     await _apiDbContext.SaveChangesAsync();
-                    return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
+                    string key = typeof(T).Name + "." + userId;
+                    await _cacheManager.RemoveAsync(key);
+                    return await Get();
 
                 }
                 else
@@ -100,7 +109,9 @@ namespace WebApi.Controllers
                         return BadRequest("Objeto no te pertenece");
                     }
                 }
-                return Ok(_apiDbContext.Set<T>().Where(x => x.UserId == userId).ToList());
+                string key = typeof(T).Name + "." + userId;
+                await _cacheManager.RemoveAsync(key);
+                return await Get();
             }
             else
             {
@@ -125,8 +136,12 @@ namespace WebApi.Controllers
                         await _apiDbContext.SaveChangesAsync();
                     }
                 }
+                string key = typeof(T).Name + "." + userId;
+                await _cacheManager.RemoveAsync(key);
             }
-            return Ok(_apiDbContext.Set<T>().ToList());
+            return await Get();
+
+
         }
         private string? getacount()
         {

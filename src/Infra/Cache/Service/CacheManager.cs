@@ -10,12 +10,16 @@ using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.Extensions.Options;
 using Infra.Cache.Settings;
+using Microsoft.Extensions.Caching.Memory;
+using System.Collections.Concurrent;
+using Microsoft.Extensions.Primitives;
 
 namespace Infra.Cache.Service
 {
     public class CacheManager<T> : ICacheManager<T> where T : IEntity
     {
         IDatabase _redis;
+        private IMemoryCache _memoryCache;
         private const string _one_suffix = "id_";
         private const string _list_suffix = "list";
         string _key;
@@ -24,8 +28,10 @@ namespace Infra.Cache.Service
         CacheSettings _settings;
         EntitySetting _entitySettings;
         IConnectionMultiplexer _connection;
+        private static CancellationTokenSource _resetCacheToken = new();
+        protected readonly ConcurrentDictionary<string, SemaphoreSlim> CacheEntries = new();
         public CacheManager(IConnectionMultiplexer connection,
-                            IOptions<CacheSettings> cacheSettings)
+                            IOptions<CacheSettings> cacheSettings, IMemoryCache memoryCache)
         {
 
             _connection = connection;
@@ -38,6 +44,7 @@ namespace Infra.Cache.Service
             _settings = cacheSettings.Value;
             _entitySettings = _settings.EntitySettings.Where(e => e.Name.Equals(_key)).FirstOrDefault();
             _redis = _connection.GetDatabase();
+            _memoryCache = memoryCache;
         }
 
         private TimeSpan GetTimespan()
@@ -115,6 +122,47 @@ namespace Infra.Cache.Service
         public bool IsCacheableEntity()
         {
             return _entitySettings != null;
+        }
+        private MemoryCacheEntryOptions GetMemoryCacheEntryOptions(int cacheTime)
+        {
+            var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime) }
+            .AddExpirationToken(new CancellationChangeToken(_resetCacheToken.Token))
+            .RegisterPostEvictionCallback(PostEvictionCallback);
+            return options;
+        }
+        private void PostEvictionCallback(object key, object value, EvictionReason reason, object state)
+        {
+            if (reason != EvictionReason.Replaced)
+                CacheEntries.TryRemove(key?.ToString() ?? "", out var _);
+        }
+        public virtual Task<T> GetAsync<T>(string key, Func<Task<T>> acquire)
+        {
+            return GetAsync(key, acquire, _entitySettings.Expiry);
+        }
+        public virtual async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, long cacheTime)
+        {
+            if (_memoryCache.TryGetValue(key, out T cacheEntry)) return cacheEntry;
+            SemaphoreSlim semaphore = CacheEntries.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            await semaphore.WaitAsync();
+            try
+            {
+                if (!_memoryCache.TryGetValue(key, out T cacheEntry))
+                {
+                    cacheEntry = await acquire();
+                    _memoryCache.Set(key, cacheEntry, GetMemoryCacheEntryOptions(cacheTime));
+                }
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+            return cacheEntry;
+
+        }
+        public virtual Task RemoveAsync(string key)
+        {
+            _memoryCache.Remove(key);
+            return Task.CompletedTask;
         }
     }
 }
