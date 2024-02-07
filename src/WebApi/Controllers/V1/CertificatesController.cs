@@ -1,4 +1,5 @@
 ﻿using Core.Entities.Models;
+using Core.Interfaces;
 using Infra.DBManager;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace WebApi.Controllers.V1
     public class CertificatesController : BaseController<Certificates>
     {
 
-        public CertificatesController(ApiDbContext apiDbContext) : base(apiDbContext)
+        public CertificatesController(ApiDbContext apiDbContext, ICacheManager<Certificates> cacheManager) : base(apiDbContext, cacheManager)
         {
         }
 

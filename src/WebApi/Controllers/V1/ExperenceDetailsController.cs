@@ -1,4 +1,5 @@
 ﻿using Core.Entities.Models;
+using Core.Interfaces;
 using Infra.DBManager;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace WebApi.Controllers.V1
     public class ExperenceDetailsController : BaseController<ExperenceDetails>
     {
 
-        public ExperenceDetailsController(ApiDbContext apiDbContext) : base(apiDbContext)
+        public ExperenceDetailsController(ApiDbContext apiDbContext, ICacheManager<ExperenceDetails> cacheManager) : base(apiDbContext, cacheManager)
         {
         }
 
