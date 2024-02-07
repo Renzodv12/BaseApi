@@ -139,14 +139,14 @@ namespace Infra.Cache.Service
         {
             return GetAsync(key, acquire, _entitySettings.Expiry);
         }
-        public virtual async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, long cacheTime)
+        public virtual async Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int cacheTime)
         {
             if (_memoryCache.TryGetValue(key, out T cacheEntry)) return cacheEntry;
             SemaphoreSlim semaphore = CacheEntries.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
             await semaphore.WaitAsync();
             try
             {
-                if (!_memoryCache.TryGetValue(key, out T cacheEntry))
+                if (!_memoryCache.TryGetValue(key, out cacheEntry))
                 {
                     cacheEntry = await acquire();
                     _memoryCache.Set(key, cacheEntry, GetMemoryCacheEntryOptions(cacheTime));

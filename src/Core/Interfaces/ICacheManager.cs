@@ -12,7 +12,7 @@ namespace Core.Interfaces
 
         Task<T> GetAsync<T>(string key, Func<Task<T>> acquire);
 
-        Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, long cacheTime);
+        Task<T> GetAsync<T>(string key, Func<Task<T>> acquire, int cacheTime);
         Task RemoveAsync(string key);
     }
 }

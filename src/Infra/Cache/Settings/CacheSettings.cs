@@ -8,7 +8,7 @@ namespace Infra.Cache.Settings
     public class EntitySetting
     {
         public string Name { get; set; }
-        public long Expiry { get; set; }
+        public int Expiry { get; set; }
         public Period Period { get; set; }
 
     }
